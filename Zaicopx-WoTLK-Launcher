@@ -1,0 +1,97 @@
+@echo off
+setlocal EnableDelayedExpansion
+
+:: Initialize variables
+set "serverStarted=0"
+
+:: Window Setup
+title AzerothCore Server
+mode con: cols=64 lines=14
+COLOR 3F
+
+:: Main Menu
+:MENU
+set "serverStarted=0"
+cls
+COLOR 02
+ECHO   WoTLK Repack by zaicopx
+ECHO       Launcher by zaicopx, MagicMushies
+ECHO          Enjoy!
+echo.
+ECHO 1 - Start Servers
+ECHO 2 - Exit
+SET /P M=Choose an option:
+IF "%M%"=="1" (
+    set "serverStarted=1"
+    GOTO STARTALL
+) ELSE IF "%M%"=="2" (
+    GOTO REAL_EXIT
+) ELSE (
+    ECHO Invalid option, please enter 1 or 2.
+    timeout 2 >nul
+    GOTO MENU
+)
+
+:: Starting all the servers
+:STARTALL
+cls
+echo CONNECTING DATABASE...
+call :STARTSERVER "mysqld.exe" "start /min mysql\\bin\\mysqld.exe --console --standalone --max_allowed_packet=128M" "Mysql was already started."
+echo CONNECTING LOGON AUTH SERVER...
+call :STARTSERVER "authserver.exe" "start /min authserver" "Authserver was already started."
+echo CONNECTING LOGON WORLD SERVER...
+call :STARTSERVER "worldserver.exe" "start /min worldserver" "Worldserver was already started."
+GOTO COUNTDOWN
+
+:: Countdown section
+:COUNTDOWN
+cls
+if "%serverStarted%"=="1" (
+    echo.
+    echo To exit the server, press Y. 
+    echo Alternatively, press R to force an immediate restart.
+         timeout 1 >nul
+		set "input="
+    set /p input=Option: 
+		echo You chose: !input!
+		if /i "!input!"=="y" (
+    goto SHUTDOWN
+		) else if /i "!input!"=="r" (
+    goto RESTARTALL
+	)
+    ) else (
+        ECHO Invalid option, please enter Y or R.
+        timeout 3 >nul
+    )
+    timeout 2 >nul
+)
+GOTO COUNTDOWN
+
+:: Shutdown
+:SHUTDOWN
+call :SHUTDOWN_SERVERS
+GOTO MENU
+timeout 1
+
+:: Restart
+:RESTARTALL
+call :SHUTDOWN_SERVERS
+GOTO STARTALL
+timeout 1
+
+:: Function to start individual server
+:STARTSERVER
+tasklist /fi "ImageName eq %~1" /fo csv 2>NUL | find /I "%~1">NUL
+if "%ERRORLEVEL%"=="1" (%~2) ELSE echo %~3
+exit /b
+
+:: Function to shutdown servers
+:SHUTDOWN_SERVERS
+taskkill /F /IM mysqld.exe
+taskkill /F /IM authserver.exe
+taskkill /F /IM worldserver.exe
+exit /b
+
+:: Real exit
+:REAL_EXIT
+exit
