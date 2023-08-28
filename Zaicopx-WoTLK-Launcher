@@ -1,5 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
+set "worldServerStatus=Unknown"
 
 :: Initialize variables
 set "serverStarted=0"
@@ -9,15 +10,15 @@ title AzerothCore Server
 mode con: cols=64 lines=14
 COLOR 3F
 
-:: Main Menu
 :MENU
-set "serverStarted=0"
+call :CHECK_WORLD_SERVER_PORT
 cls
 COLOR 02
 ECHO   WoTLK Repack by zaicopx
 ECHO       Launcher by zaicopx, MagicMushies
 ECHO          Enjoy!
 echo.
+ECHO World Server Status: %worldServerStatus%
 ECHO 1 - Start Servers
 ECHO 2 - Exit
 SET /P M=Choose an option:
@@ -34,50 +35,43 @@ IF "%M%"=="1" (
 
 :: Starting all the servers
 :STARTALL
-cls
-echo CONNECTING DATABASE...
-call :STARTSERVER "mysqld.exe" "start /min mysql\\bin\\mysqld.exe --console --standalone --max_allowed_packet=128M" "Mysql was already started."
-echo CONNECTING LOGON AUTH SERVER...
-call :STARTSERVER "authserver.exe" "start /min authserver" "Authserver was already started."
-echo CONNECTING LOGON WORLD SERVER...
-call :STARTSERVER "worldserver.exe" "start /min worldserver" "Worldserver was already started."
-GOTO COUNTDOWN
+call :START_SERVERS
+GOTO OPTIONS
 
-:: Countdown section
-:COUNTDOWN
+:: OPTIONS section
+:OPTIONS
 cls
 if "%serverStarted%"=="1" (
     echo.
     echo To exit the server, press Y. 
     echo Alternatively, press R to force an immediate restart.
-         timeout 1 >nul
-		set "input="
+    timeout 1 >nul
+    set "input="
     set /p input=Option: 
-		echo You chose: !input!
-		if /i "!input!"=="y" (
-    goto SHUTDOWN
-		) else if /i "!input!"=="r" (
-    goto RESTARTALL
-	)
+    echo You chose: !input!
+    if /i "!input!"=="y" (
+        goto SHUTDOWN
+    ) else if /i "!input!"=="r" (
+        goto RESTARTALL
     ) else (
         ECHO Invalid option, please enter Y or R.
         timeout 3 >nul
     )
-    timeout 2 >nul
+    timeout 1 >nul
 )
-GOTO COUNTDOWN
+GOTO OPTIONS
 
 :: Shutdown
 :SHUTDOWN
 call :SHUTDOWN_SERVERS
 GOTO MENU
-timeout 1
 
 :: Restart
 :RESTARTALL
 call :SHUTDOWN_SERVERS
-GOTO STARTALL
-timeout 1
+timeout /T 5 /NOBREAK >nul  :: Adding a delay before restart
+call :START_SERVERS
+GOTO COUNTDOWN
 
 :: Function to start individual server
 :STARTSERVER
@@ -85,11 +79,28 @@ tasklist /fi "ImageName eq %~1" /fo csv 2>NUL | find /I "%~1">NUL
 if "%ERRORLEVEL%"=="1" (%~2) ELSE echo %~3
 exit /b
 
+:: Function to start all servers
+:START_SERVERS
+cls
+echo CONNECTING DATABASE...
+call :STARTSERVER "mysqld.exe" "start /min mysql\\bin\\mysqld.exe --console --standalone --max_allowed_packet=128M" "Mysql was already started."
+echo CONNECTING LOGON AUTH SERVER...
+call :STARTSERVER "authserver.exe" "start /min authserver" "Authserver was already started."
+echo CONNECTING LOGON WORLD SERVER...
+call :STARTSERVER "worldserver.exe" "start /min worldserver" "Worldserver was already started."
+exit /b
+
 :: Function to shutdown servers
 :SHUTDOWN_SERVERS
 taskkill /F /IM mysqld.exe
+timeout 1 >nul
 taskkill /F /IM authserver.exe
+timeout 1 >nul
 taskkill /F /IM worldserver.exe
+timeout 1 >nul
+    echo.
+ECHO Returning...
+timeout 1 >nul
 exit /b
 
 :: Real exit
