@@ -11,14 +11,12 @@ mode con: cols=64 lines=14
 COLOR 3F
 
 :MENU
-call :CHECK_WORLD_SERVER_PORT
 cls
 COLOR 02
 ECHO   WoTLK Repack by zaicopx
 ECHO       Launcher by zaicopx, MagicMushies
 ECHO          Enjoy!
 echo.
-ECHO World Server Status: %worldServerStatus%
 ECHO 1 - Start Servers
 ECHO 2 - Exit
 SET /P M=Choose an option:
