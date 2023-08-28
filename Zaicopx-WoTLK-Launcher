@@ -86,7 +86,7 @@ echo CONNECTING LOGON AUTH SERVER...
 call :STARTSERVER "authserver.exe" "start /min authserver" "Authserver was already started."
 echo CONNECTING LOGON WORLD SERVER...
 call :STARTSERVER "worldserver.exe" "start /min worldserver" "Worldserver was already started."
-exit /b
+GOTO OPTIONS
 
 :: Function to shutdown servers
 :SHUTDOWN_SERVERS
