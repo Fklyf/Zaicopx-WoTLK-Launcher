@@ -6,13 +6,12 @@ set "worldServerStatus=Unknown"
 set "serverStarted=0"
 
 :: Window Setup
-title AzerothCore Server
-mode con: cols=64 lines=14
-COLOR 3F
+title Zaicopx AzerothCore Server
+mode con: cols=58 lines=16
+COLOR 02
 
 :MENU
 cls
-COLOR 02
 ECHO   WoTLK Repack by zaicopx
 ECHO       Launcher by zaicopx, MagicMushies
 ECHO          Enjoy!
