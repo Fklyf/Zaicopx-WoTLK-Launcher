@@ -1,8 +1,7 @@
 @echo off
-setlocal EnableDelayedExpansion
-set "worldServerStatus=Unknown"
 
 :: Initialize variables
+setlocal EnableDelayedExpansion
 set "serverStarted=0"
 
 :: Window Setup
@@ -41,22 +40,38 @@ cls
 if "%serverStarted%"=="1" (
     echo.
     echo To exit the server, press Y. 
-    echo Alternatively, press R to force an immediate restart.
+    echo Press W to restart the World server only.
+    echo Press A to restart and reload the Auth server only.
+    echo Press R to force an immediate restart of all servers.
+    echo Press S to restart MySQL.
     timeout 1 >nul
     set "input="
     set /p input=Option: 
     echo You chose: !input!
     if /i "!input!"=="y" (
         goto SHUTDOWN
+    ) else if /i "!input!"=="w" (
+        taskkill /F /IM worldserver.exe
+        timeout /T 1 /NOBREAK >nul
+        call :STARTSERVER "worldserver.exe" "start /min worldserver" "Worldserver was already started."
+    ) else if /i "!input!"=="a" (
+        taskkill /F /IM authserver.exe
+        timeout /T 1 /NOBREAK >nul
+        call :STARTSERVER "authserver.exe" "start /min authserver" "Authserver was already started."
     ) else if /i "!input!"=="r" (
         goto RESTARTALL
+    ) else if /i "!input!"=="s" (
+        taskkill /F /IM mysqld.exe
+        timeout /T 1 /NOBREAK >nul
+        call :STARTSERVER "mysqld.exe" "start /min mysql\\bin\\mysqld.exe --console --standalone --max_allowed_packet=128M" "Mysql was already started."
     ) else (
-        ECHO Invalid option, please enter Y or R.
+        ECHO Invalid option, please enter Y, W, A, R, or S.
         timeout 3 >nul
     )
     timeout 1 >nul
 )
 GOTO OPTIONS
+
 
 :: Shutdown
 :SHUTDOWN
